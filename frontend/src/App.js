@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 
+const API = "https://scoopjoy.onrender.com"; // ✅ LIVE BACKEND
+
 function App() {
   const [user, setUser] = useState(null);
   const [page, setPage] = useState("login");
@@ -15,28 +17,29 @@ function App() {
 
   useEffect(() => {
     if (user) {
-      axios.get("http://127.0.0.1:8000/api/products/")
-        .then(res => setProducts(res.data));
+      axios.get(`${API}/api/products/`)
+        .then(res => setProducts(res.data))
+        .catch(() => alert("Backend not responding ❌"));
     }
   }, [user]);
 
   const login = () => {
-    axios.post("http://127.0.0.1:8000/api/auth/login", {
-      email, password
-    }).then(res => {
-      if (res.data.message.includes("successful")) {
-        setUser(email);
-        setPage("products");
-      } else {
-        alert("Invalid login ❌");
-      }
-    });
+    axios.post(`${API}/api/auth/login`, { email, password })
+      .then(res => {
+        if (res.data.message.includes("successful")) {
+          setUser(email);
+          setPage("products");
+        } else {
+          alert("Invalid login ❌");
+        }
+      })
+      .catch(() => alert("Login error ❌"));
   };
 
   const signup = () => {
-    axios.post("http://127.0.0.1:8000/api/auth/signup", {
-      email, password
-    }).then(res => alert(res.data.message));
+    axios.post(`${API}/api/auth/signup`, { email, password })
+      .then(res => alert(res.data.message))
+      .catch(() => alert("Signup error ❌"));
   };
 
   const addToCart = (item) => {
@@ -60,20 +63,24 @@ function App() {
   const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
   const loadOrders = () => {
-    axios.get("http://127.0.0.1:8000/api/orders/")
-      .then(res => setOrders(res.data));
+    axios.get(`${API}/api/orders/`)
+      .then(res => setOrders(res.data))
+      .catch(() => alert("Failed to load orders ❌"));
   };
 
   const checkout = () => {
-    axios.post("http://127.0.0.1:8000/api/orders/", {
+    axios.post(`${API}/api/orders/`, {
       user,
       items: cart,
       total
-    }).then(() => {
+    })
+    .then(() => {
+      alert("Order placed 🎉");
       setCart([]);
       loadOrders();
       setPage("orders");
-    });
+    })
+    .catch(() => alert("Checkout failed ❌"));
   };
 
   // NAVBAR
@@ -105,9 +112,7 @@ function App() {
 
       {/* LOGIN */}
       {page === "login" && (
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
+        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }}
           className="flex justify-center items-center h-[80vh]"
         >
           <div className="backdrop-blur-lg bg-white/70 p-8 rounded-xl shadow-xl w-80 text-center">
@@ -124,16 +129,14 @@ function App() {
               onChange={(e) => setPassword(e.target.value)}
             />
 
-            <motion.button
-              whileTap={{ scale: 0.9 }}
+            <motion.button whileTap={{ scale: 0.9 }}
               onClick={login}
               className="bg-green-500 text-white w-full py-2 rounded mb-2"
             >
               Login
             </motion.button>
 
-            <motion.button
-              whileTap={{ scale: 0.9 }}
+            <motion.button whileTap={{ scale: 0.9 }}
               onClick={signup}
               className="bg-blue-500 text-white w-full py-2 rounded"
             >
@@ -145,27 +148,22 @@ function App() {
 
       {/* PRODUCTS */}
       {page === "products" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
           className="p-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6"
         >
           {products.map(item => (
-            <motion.div
-              key={item.id}
+            <motion.div key={item.id}
               whileHover={{ scale: 1.08 }}
-              whileTap={{ scale: 0.95 }}
               className="bg-white p-4 rounded-xl shadow-md"
             >
-              <img src={item.image}
-                alt={item.name}
+              <img src={item.image} alt={item.name}
+                className="h-40 w-full object-cover rounded-lg"
               />
 
               <h3 className="mt-3 font-bold">{item.name}</h3>
               <p>₹{item.price}</p>
 
-              <button
-                onClick={() => addToCart(item)}
+              <button onClick={() => addToCart(item)}
                 className="mt-2 w-full bg-pink-500 text-white py-2 rounded"
               >
                 Add to Cart
@@ -177,54 +175,36 @@ function App() {
 
       {/* CART */}
       {page === "cart" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-6"
-        >
+        <motion.div className="p-6">
           <h2 className="text-xl font-bold mb-4">🛒 Cart</h2>
 
           {cart.map(item => (
-            <motion.div
-              key={item.id}
-              whileHover={{ scale: 1.02 }}
-              className="flex justify-between bg-white p-4 mb-3 rounded-xl shadow"
-            >
+            <div key={item.id} className="flex justify-between bg-white p-4 mb-3 rounded shadow">
               <span>{item.name} × {item.qty}</span>
               <span>
                 ₹{item.price * item.qty}
                 <button onClick={() => removeItem(item.id)} className="ml-2 text-red-500">❌</button>
               </span>
-            </motion.div>
+            </div>
           ))}
 
           <h3 className="mt-4 font-bold">Total: ₹{total}</h3>
 
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={checkout}
+          <button onClick={checkout}
             className="mt-4 bg-green-500 text-white px-6 py-2 rounded"
           >
             Checkout 🚀
-          </motion.button>
+          </button>
         </motion.div>
       )}
 
       {/* ORDERS */}
       {page === "orders" && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="p-6"
-        >
+        <motion.div className="p-6">
           <h2 className="text-xl font-bold mb-4">📄 Orders</h2>
 
           {orders.map((order, i) => (
-            <motion.div
-              key={i}
-              whileHover={{ scale: 1.02 }}
-              className="bg-white p-4 mb-3 rounded-xl shadow"
-            >
+            <div key={i} className="bg-white p-4 mb-3 rounded shadow">
               <h3 className="font-bold">Order {i + 1}</h3>
 
               {order.items.map((item, index) => (
@@ -232,7 +212,7 @@ function App() {
               ))}
 
               <p className="font-bold mt-2">Total: ₹{order.total}</p>
-            </motion.div>
+            </div>
           ))}
         </motion.div>
       )}
