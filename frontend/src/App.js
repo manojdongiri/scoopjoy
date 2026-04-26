@@ -158,7 +158,7 @@ function App() {
               className="bg-white p-4 rounded-xl shadow-md"
             >
               <img src={item.image}
-                className="h-40 w-full object-cover rounded-lg"
+                alt={item.name}
               />
 
               <h3 className="mt-3 font-bold">{item.name}</h3>
