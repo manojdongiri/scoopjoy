@@ -1,19 +1,33 @@
 from fastapi import APIRouter
+from pymongo import MongoClient
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
-users = []
+client = MongoClient("mongodb://localhost:27017")
+db = client["scoopjoy"]
+users_collection = db["users"]
 
-# SIGNUP
+# 🔹 Signup
 @router.post("/signup")
 async def signup(user: dict):
-    users.append(user)
-    return {"message": "User created successfully ✅"}
+    existing = users_collection.find_one({"email": user["email"]})
 
-# LOGIN
+    if existing:
+        return {"message": "User already exists ❌"}
+
+    users_collection.insert_one(user)
+    return {"message": "Signup successful ✅"}
+
+
+# 🔹 Login
 @router.post("/login")
 async def login(user: dict):
-    for u in users:
-        if u["email"] == user["email"] and u["password"] == user["password"]:
-            return {"message": "Login successful ✅"}
-    return {"message": "Invalid credentials ❌"}
+    existing = users_collection.find_one({
+        "email": user["email"],
+        "password": user["password"]
+    })
+
+    if existing:
+        return {"message": "Login successful ✅"}
+    else:
+        return {"message": "Invalid credentials ❌"}
