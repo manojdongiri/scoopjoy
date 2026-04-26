@@ -3,11 +3,14 @@ from pymongo import MongoClient
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
-client = MongoClient("mongodb://localhost:27017")
+# ✅ MongoDB Atlas connection
+uri = "mongodb+srv://manojdongiri:123456@cluster0.wun8f6y.mongodb.net/?appName=Cluster0"
+client = MongoClient(uri)
+
 db = client["scoopjoy"]
 users_collection = db["users"]
 
-# 🔹 Signup
+# Signup
 @router.post("/signup")
 async def signup(user: dict):
     existing = users_collection.find_one({"email": user["email"]})
@@ -18,8 +21,7 @@ async def signup(user: dict):
     users_collection.insert_one(user)
     return {"message": "Signup successful ✅"}
 
-
-# 🔹 Login
+# Login
 @router.post("/login")
 async def login(user: dict):
     existing = users_collection.find_one({
