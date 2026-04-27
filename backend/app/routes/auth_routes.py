@@ -4,7 +4,7 @@ from pymongo import MongoClient
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 # ✅ MongoDB Atlas connection
-uri = "mongodb+srv://manojdongiri:123456@cluster0.wun8f6y.mongodb.net/?appName=Cluster0"
+uri = "mongodb+srv://manojdongiri:scoopjoy@cluster0.wun8f6y.mongodb.net/?appName=Cluster0"
 client = MongoClient(uri)
 
 db = client["scoopjoy"]
